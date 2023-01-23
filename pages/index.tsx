@@ -2,33 +2,26 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useStore } from "zustand";
 import { CartItem } from "../components/CartItem";
 import { ProductCard } from "../components/ProductCard";
+import { getFromStore } from "../hooks/getFromStore";
 import { Product } from "../lib/slices/createProductSlice";
 import { useAppStore } from "../lib/store";
 
 const Home: NextPage = () => {
-  const { products, fetchProducts, cart, showCart, toggleCart } = useAppStore();
-
-  const [mProducts, setMProducts] = useState<Product[]>([]);
-  const [mCart, setMCart] = useState<Product[]>([]);
-
-  const calculateTotal = () => {
-    return cart.reduce((acc, item) => acc + item.price * item.quantity!, 0);
-  };
+  const { fetchProducts, showCart, toggleCart } = useAppStore();
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  useEffect(() => {
-    setMProducts(products);
-  }, [products]);
+  const mProducts = getFromStore(useAppStore, (state) => state.products);
+  const mCart = getFromStore(useAppStore, (state) => state.cart);
 
-  useEffect(() => {
-    setMCart(cart);
-    calculateTotal();
-  }, [cart]);
+  const calculateTotal = () => {
+    return mCart.reduce((acc, item) => acc + item.price * item.quantity!, 0);
+  };
 
   return (
     <div className="min-h-screen bg-[#161A1E] relative">
@@ -106,10 +99,10 @@ const Home: NextPage = () => {
             </button>
           </div>
           {/* cart items */}
-          {cart?.map((cartItem) => (
+          {mCart?.map((cartItem) => (
             <CartItem key={cartItem.id} {...cartItem} />
           ))}
-          {cart?.length > 0 && (
+          {mCart?.length > 0 && (
             <div className="mt-5 text-center">
               <p className="text-gray-500 uppercase">Total</p>
               <h4 className="font-semibold text-4xl text-white">
